@@ -1,17 +1,8 @@
-from fastapi import APIRouter, Request, Form, Depends
-from fastapi.responses import HTMLResponse, RedirectResponse
-from fastapi.templating import Jinja2Templates
-from sqlalchemy.orm import Session
+from . import *
 from passlib.context import CryptContext
+from fastr.lib.utils import flash
 
-from fastr.db.database import get_db
-from fastr.db import crud, schemas
-from fastr.utils import flash
-
-
-router = APIRouter(prefix="/auth", tags=["auth"])
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-templates = Jinja2Templates(directory=str("fastr/templates"))
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
@@ -22,13 +13,13 @@ def get_password_hash(password: str) -> str:
     return pwd_context.hash(password)
 
 
-@router.get("/register", response_class=HTMLResponse)
+@api.get("/register", response_class=HTMLResponse)
 def register_page(request: Request):
     """Display the user registration page"""
-    return templates.TemplateResponse("auth/register.html", {"request": request})
+    return html.TemplateResponse("auth/register.html", {"request": request})
 
 
-@router.post("/register", response_class=HTMLResponse)
+@api.post("/register", response_class=HTMLResponse)
 def register_post(
     request: Request,
     username: str = Form(...),
@@ -61,13 +52,13 @@ def register_post(
         return RedirectResponse("/auth/register", status_code=302)
 
 
-@router.get("/login", response_class=HTMLResponse)
+@api.get("/login", response_class=HTMLResponse)
 def login_page(request: Request):
     """Display the login page"""
-    return templates.TemplateResponse("auth/login.html", {"request": request})
+    return html.TemplateResponse("auth/login.html", {"request": request})
 
 
-@router.post("/login", response_class=HTMLResponse)
+@api.post("/login", response_class=HTMLResponse)
 def login_post(
     request: Request,
     username: str = Form(...),
@@ -96,7 +87,7 @@ def login_post(
         return RedirectResponse("/auth/login", status_code=302)
 
 
-@router.get("/logout", response_class=HTMLResponse)
+@api.get("/logout", response_class=HTMLResponse)
 def logout_page(request: Request):
     """Clear the current session, including the stored user id."""
     clear_session(request)

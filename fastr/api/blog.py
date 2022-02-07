@@ -1,15 +1,4 @@
-from fastapi import APIRouter, Request, Form, Depends, HTTPException
-from fastapi.responses import HTMLResponse, RedirectResponse
-from fastapi.templating import Jinja2Templates
-from sqlalchemy.orm import Session
-
-from fastr.db.database import get_db
-from fastr.db import crud, schemas, models
-
-
-router = APIRouter(tags=["blog"])
-templates = Jinja2Templates(directory=str("fastr/templates"))
-
+from . import *
 
 # https://github.com/tiangolo/fastapi/issues/1039#issuecomment-591661667
 class RequiresLoginException(Exception):
@@ -29,26 +18,24 @@ def login_required(request: Request):
         raise RequiresLoginException
 
 
-@router.get("/", response_class=HTMLResponse)
+@api.get("/", response_class=HTMLResponse)
 def index(request: Request, db: Session = Depends(get_db)):
     """Show all the posts, most recent first."""
     posts = crud.get_posts(db)
-    return templates.TemplateResponse(
+    return html.TemplateResponse(
         "blog/index.html", {"request": request, "posts": posts}
     )
 
 
-@router.get(
-    "/create", dependencies=[Depends(login_required)], response_class=HTMLResponse
-)
+@api.get("/create", 
+    dependencies=[Depends(login_required)], response_class=HTMLResponse)
 def create_page(request: Request):
     """Create post page."""
-    return templates.TemplateResponse("blog/create.html", {"request": request})
+    return html.TemplateResponse("blog/create.html", {"request": request})
 
 
-@router.post(
-    "/create", dependencies=[Depends(login_required)], response_class=HTMLResponse
-)
+@api.post("/create", 
+    dependencies=[Depends(login_required)], response_class=HTMLResponse)
 def create_post(
     request: Request,
     title: str = Form(...),
@@ -66,20 +53,18 @@ def create_post(
     return RedirectResponse("/", status_code=302)
 
 
-@router.get(
-    "/{id}/update", dependencies=[Depends(login_required)], response_class=HTMLResponse
-)
+@api.get("/{id}/update", 
+    dependencies=[Depends(login_required)], response_class=HTMLResponse)
 def update_page(request: Request, id: int, db: Session = Depends(get_db)):
     """Update post page."""
     post = get_and_validate_post(id=id, db=db, request=request)
-    return templates.TemplateResponse(
+    return html.TemplateResponse(
         "blog/update.html", {"request": request, "post": post}
     )
 
 
-@router.post(
-    "/{id}/update", dependencies=[Depends(login_required)], response_class=HTMLResponse
-)
+@api.post("/{id}/update", 
+    dependencies=[Depends(login_required)], response_class=HTMLResponse)
 def update_post(
     request: Request,
     id: int,
@@ -100,9 +85,9 @@ def update_post(
     return RedirectResponse("/", status_code=302)
 
 
-@router.post(
-    "/{id}/delete", dependencies=[Depends(login_required)], response_class=HTMLResponse
-)
+@api.post("/{id}/delete", 
+    dependencies=[Depends(login_required)], 
+    response_class=HTMLResponse)
 def delete_post(
     request: Request,
     id: int,
@@ -158,3 +143,4 @@ def get_and_validate_post(
         )
 
     return post
+

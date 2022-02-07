@@ -1,7 +1,20 @@
 <!doctype html>
 <title>{% block title %}{% endblock %} - Fastr</title>
-<link rel="stylesheet" href="{{ url_for('static', path='style.css') }}">
+<style>
+  @font-face
+  {
+    font-family: 'BibleScriptStd';
+    src: url("{{ url_for('static', path='css/Bible_Script_Std_Regular.otf') }}") format("opentype");
+  }
+  h1, h2, p {
+  font-family: 'BibleScriptStd';
+}
+</style>
+<link rel="stylesheet" href="{{ url_for('static', path='css/style.css') }}">
 <nav>
+  <h1 style="font-family:BibleScriptStd;">text</h1>
+
+
   <h1><a href="{{ url_for('index') }}">Fastr</a></h1>
   <ul>
     {% if request.session.user %}

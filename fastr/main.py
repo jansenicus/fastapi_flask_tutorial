@@ -3,32 +3,26 @@ from fastapi.responses import RedirectResponse, HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from starlette.middleware.sessions import SessionMiddleware
 
-from fastr import auth, blog
+from fastr.api import auth, blog, hello
 from fastr.db import models
 from fastr.db.database import engine
-from fastr.config import Settings
+from fastr.lib.config import Settings
 
 
 # create the database tables
 models.Base.metadata.create_all(bind=engine)
 
-app = FastAPI()
+API = FastAPI()
 
 settings = Settings()
-app.add_middleware(SessionMiddleware, secret_key=settings.secret_key)
-
-app.mount("/static", StaticFiles(directory="fastr/static"), name="static")
-app.include_router(auth.router)
-app.include_router(blog.router)
-
-
-@app.get("/hello", response_class=HTMLResponse)
-async def hello() -> str:
-    """A simple page that says hello"""
-    return "Hello, World!"
+API.add_middleware(SessionMiddleware, secret_key=settings.secret_key)
+API.mount("/static", StaticFiles(directory="fastr/res"), name="static")
+API.include_router(hello.api)
+API.include_router(auth.api, prefix="/auth", tags=["auth"])
+API.include_router(blog.api, tags=["blog"])
 
 
-@app.exception_handler(blog.RequiresLoginException)
+@API.exception_handler(blog.RequiresLoginException)
 def exception_handler(request: Request, exc: blog.RequiresLoginException) -> Response:
     """
     Redirect to login screen if someone tries to access a view that requires login.
